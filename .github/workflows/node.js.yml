@@ -29,9 +29,9 @@ jobs:
     - run: npm ci
     - name: Install cli
       run: npm i -g react-scripts
-    - run: cargo install tauri-cli --version "^1.0.0"
     - name: Install dependencies
       run: npm i
     - uses: actions/checkout@v3
+    
     - name: tauri-build
-      run: npm run tauri build
+      uses: JonasKruckenberg/tauri-build@v1.0.3
