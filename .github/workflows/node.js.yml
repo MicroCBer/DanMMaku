@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -29,6 +29,8 @@ jobs:
     - run: npm ci
     - name: Install cli
       run: npm i -g react-scripts
+    - name: Install dependencies
+      run: npm i
     - uses: actions/checkout@v3
     - name: tauri-build
       uses: JonasKruckenberg/tauri-build@v1.0.3
