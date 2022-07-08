@@ -1,0 +1,22 @@
+.pluginSettingsTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #444444;
+}
+.pluginSettings {
+  padding: 0.8rem;
+}
+.pluginSettings .btnSave {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+}
+.pluginSettings .plugin {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.178);
+  padding: 1rem;
+}
+.pluginSettings .plugin .pluginName {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 1rem;
+}

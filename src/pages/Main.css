@@ -1,0 +1,15 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2rem;
+}
+.App .title {
+  font-size: 2rem;
+  padding: 1rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, #9900ff, #00aeff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

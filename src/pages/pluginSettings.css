@@ -1,0 +1,42 @@
+.pluginSettingsPage {
+  padding: 1.3rem;
+}
+.pluginSettingsPage .pluginSettings .pluginTitle {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+.pluginSettingsPage .pluginSettings .subtitle-10 {
+  padding: 0.3rem 10rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-9 {
+  padding: 0.3rem 9rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-8 {
+  padding: 0.3rem 8rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-7 {
+  padding: 0.3rem 7rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-6 {
+  padding: 0.3rem 6rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-5 {
+  padding: 0.3rem 5rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-4 {
+  padding: 0.3rem 4rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-3 {
+  padding: 0.3rem 3rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-2 {
+  padding: 0.3rem 2rem;
+}
+.pluginSettingsPage .pluginSettings .subtitle-1 {
+  padding: 0.3rem 1rem;
+}
+.pluginSettingsPage .btnSave {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+}

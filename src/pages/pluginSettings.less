@@ -1,0 +1,25 @@
+.create-handle(@index) when (@index > 0) {
+    .subtitle-@{index} {
+        padding: .3rem @index*1rem;
+    }
+
+    .create-handle(@index - 1)
+}
+
+.pluginSettingsPage {
+    padding: 1.3rem;
+
+    .pluginSettings {
+        .pluginTitle {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        .create-handle(10)
+    }
+
+    .btnSave {
+        position: absolute;
+        right: .6rem;
+        bottom: .6rem;
+    }
+}
