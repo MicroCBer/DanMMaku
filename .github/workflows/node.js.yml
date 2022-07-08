@@ -31,6 +31,7 @@ jobs:
       run: npm i -g react-scripts
     - name: Install dependencies
       run: npm i
+    - run: npm install react@latest react-dom@latest
     - uses: actions/checkout@v3
     
     - name: tauri-build
