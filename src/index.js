@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import './index.css';
 import Main from './pages/Main';
 import reportWebVitals from './reportWebVitals';
@@ -10,6 +10,8 @@ import {
 } from "react-router-dom";
 import Settings from './pages/Settings';
 import PluginSettings from './pages/PluginSettings';
+
+
 
 const Buffer = require('buffer').Buffer
 window["Buffer"] = Buffer
