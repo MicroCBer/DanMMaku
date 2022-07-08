@@ -29,7 +29,7 @@ jobs:
     - run: npm ci
     - name: Install cli
       run: npm i -g react-scripts
-    - run: npm install --save-dev @tauri-apps/cli
+    - run: cargo install tauri-cli --version "^1.0.0"
     - name: Install dependencies
       run: npm i
     - uses: actions/checkout@v3
