@@ -19,6 +19,8 @@ jobs:
     steps:
     - name: Install cli
       run: npm i -g react-scripts
+    - name: Install dependencies
+      run: npm i
     - uses: actions/checkout@v3
     - name: tauri-build
       # You may pin to the exact commit or the version.
