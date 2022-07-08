@@ -51,5 +51,21 @@
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.2",
     "cross-env": "^7.0.3"
-  }
+  },
+  "description": "只是一个B站弹幕姬罢了",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MicroCBer/DanMMaku.git"
+  },
+  "keywords": [
+    "Danmaku",
+    "Bilibili"
+  ],
+  "author": "MicroBlock",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/MicroCBer/DanMMaku/issues"
+  },
+  "homepage": "https://github.com/MicroCBer/DanMMaku#readme"
 }
