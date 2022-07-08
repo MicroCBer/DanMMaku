@@ -17,11 +17,6 @@ jobs:
         node-version: [16.x]
         
     steps:
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
     - name: Install cli
       run: npm i -g react-scripts
     - uses: actions/checkout@v3
