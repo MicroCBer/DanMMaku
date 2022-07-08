@@ -11,7 +11,7 @@ import {
 import Settings from './pages/Settings';
 import PluginSettings from './pages/PluginSettings';
 
-const Buffer = require('buffer/').Buffer
+const Buffer = require('buffer').Buffer
 window["Buffer"] = Buffer
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
