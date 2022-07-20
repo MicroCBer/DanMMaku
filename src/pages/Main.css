@@ -4,6 +4,7 @@
   align-items: center;
   justify-content: center;
   padding-top: 2rem;
+  height: 100%;
 }
 .App .title {
   font-size: 2rem;
@@ -12,4 +13,41 @@
   background: linear-gradient(90deg, #9900ff, #00aeff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+.App .connected {
+  margin-bottom: 1.3rem;
+  cursor: pointer;
+  position: relative;
+}
+.App .connected .connectedLiveRoomID {
+  user-select: none;
+  text-align: center;
+  font-weight: 500;
+  position: relative;
+  color: rgba(0, 0, 0, 0.473);
+  transition: all 0.3s;
+}
+.App .connected .splitline {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.486), transparent);
+  height: 2px;
+  width: 60vw;
+  transition: all 0.3s;
+}
+.App .connected::after {
+  position: absolute;
+  content: "断开连接";
+  font-weight: 600;
+  font-size: xx-small;
+  text-align: center;
+  width: 100%;
+  color: transparent;
+  transition: all 0.3s;
+}
+.App .connected:hover .splitline {
+  background: linear-gradient(90deg, transparent, #000000ad, transparent);
+  width: 90vw;
+}
+.App .connected:hover::after,
+.App .connected:hover .connectedLiveRoomID {
+  color: #000000ad;
 }

@@ -1,17 +1,61 @@
-
 .App {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding-top: 2rem;
+  height: 100%;
 
   .title {
     font-size: 2rem;
     padding: 1rem;
     font-weight: 900;
-    background: linear-gradient(90deg,rgb(153, 0, 255), rgb(0, 174, 255));
+    background: linear-gradient(90deg, rgb(153, 0, 255), rgb(0, 174, 255));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  .connected {
+    margin-bottom: 1.3rem;
+    @hover-color:#000000ad;
+
+    .connectedLiveRoomID {
+      user-select: none;
+      text-align: center;
+      font-weight: 500;
+      position: relative;
+      color: rgba(0, 0, 0, 0.473);
+      transition: all 0.3s;
+    }
+
+    .splitline {
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.486), transparent);
+      height: 2px;
+      width: 60vw;
+      transition: all 0.3s;
+    }
+
+    &::after{
+      position: absolute;
+      content: "断开连接";
+      font-weight: 600;
+      font-size: xx-small;
+      text-align: center;
+      width: 100%;
+      color: transparent;
+      transition: all 0.3s;
+    }
+    cursor: pointer;
+    position: relative;
+    &:hover{
+      .splitline {
+        background: linear-gradient(90deg, transparent, @hover-color, transparent);
+        width: 90vw;
+      }
+      &::after,.connectedLiveRoomID{
+        color:@hover-color;
+      }
+    }
+  }
+
 }

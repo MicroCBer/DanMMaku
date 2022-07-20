@@ -1,6 +1,6 @@
 import { Component } from "react";
-import { Box, Button, ListItem, ListItemText, Dialog, Divider, DialogTitle, Avatar, TextField, DialogActions, ListItemAvatar, DialogContent, DialogContentText } from "@mui/material"
-import { Add, Remove} from "@mui/icons-material"
+import { Box, Button, ListItem, ListItemText, Dialog, Divider, DialogTitle, Avatar, TextField, DialogActions, ListItemAvatar, DialogContent, DialogContentText, ToggleButton, Switch } from "@mui/material"
+import { Add, Remove } from "@mui/icons-material"
 import "./Universal.css"
 import "./Settings.css"
 import { invoke, fs, process, window } from '@tauri-apps/api';
@@ -11,15 +11,21 @@ function SettingsTitle(text) {
 
 let pluginList = [];
 
-const saferEval = require('safer-eval')
-
 
 class Settings extends Component {
     state = {
         pluginList: [],
         updaterHandle: -1,
         editingBlacklist: false,
-        addBlacklistKey: ""
+        addBlacklistKey: "",
+        danmmakuSettings: {}
+    }
+    constructor(prop) {
+        super(prop)
+        this.state.danmmakuSettings = JSON.parse(localStorage["cc.danmmaku.settings"] || "{}")
+        if (this.state.updaterHandle == -1) {
+            this.state.updaterHandle = setInterval(() => { this.updatePluginList() }, 1000)
+        }
     }
     async updatePluginList() {
         let plugins = [], pluginListeners = {}
@@ -37,18 +43,12 @@ class Settings extends Component {
                 }
             }
 
-            eval(`function __danmmaku_plugin_loader__(danmmaku){${content}\n}\n__danmmaku_plugin_loader__`).call(danmmakuAPI, danmmakuAPI)
+            new Function("danmmaku", content).call(danmmakuAPI, danmmakuAPI)
         }
         this.setState({ pluginList: plugins })
     }
-    constructor(prop) {
-        super(prop)
-        if (this.state.updaterHandle == -1) {
-            this.state.updaterHandle = setInterval(() => { this.updatePluginList() }, 1000)
-        }
-
-    }
     saveSettings() {
+        localStorage["cc.danmmaku.settings"] = JSON.stringify(this.state.danmmakuSettings)
         process.relaunch()
     }
     openSettingsForPlugin(plugin) {
@@ -92,9 +92,40 @@ class Settings extends Component {
                 <Button onClick={async () => {
                     await invoke("open", { sth: await invoke("get_config_dir") + "/plugins" })
                 }}>打开插件文件夹</Button>
+                <Button onClick={async () => {
+                    await invoke("open", { sth: await invoke("get_config_dir")})
+                }}>打开DanMMaku设置文件夹</Button>
                 <Button onClick={() => { this.editBlacklist() }}>编辑屏蔽名单</Button>
+                {SettingsTitle("个性化")}
+                <div>
+                    <span style={{ color: "rgb(99, 99, 99)", fontSize: ".8rem" }}>隐藏DanMMaku标题</span>
+                    <Switch checked={this.state.danmmakuSettings["customized.hideTitle"]}
+                        onChange={(_, checked) =>
+                            this.setState(prev => ({
+                                danmmakuSettings:
+                                {
+                                    ...prev.danmmakuSettings,
+                                    "customized.hideTitle": checked
+                                }
+                            }))} />
+                </div>
+                <div>
+                    <div style={{ color: "rgb(99, 99, 99)", fontSize: ".8rem" }}>自定义背景图（相对于DanMMaku设置文件夹）</div>
+                    <TextField size="small" variant="filled" hiddenLabel margin="none"
+                        defaultValue={this.state.danmmakuSettings["customized.background"]}
+                        fullWidth onChange={(e) =>{
+                            console.log(e,this.state)
+                            this.setState(prev => ({
+                                danmmakuSettings:
+                                {
+                                    ...prev.danmmakuSettings,
+                                    "customized.background": e.target.value
+                                }
+                            }))}}></TextField>
+                </div>
+
                 {SettingsTitle("插件列表")}
-                <FixedSizeList height={400}
+                <FixedSizeList height={300}
                     width={360}
                     itemSize={46}
                     itemCount={this.state.pluginList.length}
@@ -110,7 +141,7 @@ class Settings extends Component {
                     }
                 </FixedSizeList>
                 <Box className="btnSave">
-                    <Button variant="contained" onClick={this.saveSettings}>
+                    <Button variant="contained" onClick={() => { this.saveSettings() }}>
                         保存
                     </Button>
                 </Box>
@@ -137,7 +168,7 @@ class Settings extends Component {
                                         <ListItem button onClick={() => {
                                             this.removeBlacklist(key, value);
                                         }}>
-                                            <Remove/>
+                                            <Remove />
                                             <ListItemText secondary={`${value}`} />
                                         </ListItem>
                                     )
@@ -146,7 +177,7 @@ class Settings extends Component {
                                     <ListItem button onClick={() => {
                                         this.setState({ addBlacklistKey: key })
                                     }}>
-                                        <Add fontSize="small"/>
+                                        <Add fontSize="small" />
                                         <ListItemText secondary={`添加屏蔽`} />
                                     </ListItem>
                                 )

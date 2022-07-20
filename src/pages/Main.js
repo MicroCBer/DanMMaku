@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Button, TextField, Alert, Snackbar, Dialog, DialogTitle, AlertTitle, InputAdornment, Box, List, ListItem, ListItemAvatar, ListItemText, Avatar, Backdrop, CircularProgress } from '@mui/material';
 import { Block, MeetingRoom } from "@mui/icons-material"
-import { invoke, window, fs, http, event } from '@tauri-apps/api';
+import { invoke, window, fs, http, event, tauri } from '@tauri-apps/api';
 import { VariableSizeList } from "react-window"
 import './Main.css';
 import "./Universal.css"
@@ -27,21 +27,28 @@ class Main extends React.Component {
             loadPluginAlert: false,
             plugins: [],
             pluginListeners: {},
-            dialogMessage: {}
+            dialogMessage: {},
+            danmmakuSettings: {},
+            lastHeartbeat: 0
         };
+
+        this.state.danmmakuSettings = JSON.parse(localStorage["cc.danmmaku.settings"] || "{}")
 
         this.loadPlugins()
 
-        invoke("get_config_dir").then((configDir) => { this.state.configDir = configDir })
+        invoke("get_config_dir").then((configDir) => {
+            this.state.configDir = configDir
+            document.body.style.background = "url(" + tauri.convertFileSrc(configDir + "/" + this.state.danmmakuSettings["customized.background"]) + ")"
+        })
 
         event.listen("addMessage", (e) => {
             let { title, text, type } = JSON.parse(e.payload);
-            this.setState({
+            this.setState(prev => ({
                 messages: [{
                     type: "plugin_msg",
                     title, text, msg_type: type, key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
-                }, ...this.state.messages]
-            })
+                }, ...prev.messages.slice(0, this.state.maxMessageNumber - 1)]
+            }))
         })
     }
     async loadPlugins() {
@@ -60,7 +67,9 @@ class Main extends React.Component {
                 }
             }
 
-            eval(`function __danmmaku_plugin_loader__(danmmaku){${content}\n}\n__danmmaku_plugin_loader__`).call(danmmakuAPI, danmmakuAPI)
+
+
+            new Function("danmmaku", content).call(danmmakuAPI, danmmakuAPI)
         }
 
 
@@ -79,7 +88,6 @@ class Main extends React.Component {
         this.setState({ plugins, loadPluginAlert: true, pluginListeners })
     }
     triggerEvent(event, data) {
-        console.log("Event triggered", event, data)
         if (this.state.pluginListeners[event] != undefined) {
             for (let handle of this.state.pluginListeners[event]) {
                 handle.callback.call(data, data)
@@ -87,8 +95,6 @@ class Main extends React.Component {
         }
     }
     async processMessage(msg) {
-        console.log(msg)
-
         let { cmd, info, data } = msg;
 
         function parseEvent() {
@@ -146,9 +152,10 @@ class Main extends React.Component {
 
         if (this.checkBlacklist(eventData)) return;
 
-        this.setState({
-            messages: [eventData, ...this.state.messages]
-        })
+        console.log("state", this.state, eventData)
+        this.setState(prev => ({
+            messages: [eventData, ...prev.messages.slice(0, this.state.maxMessageNumber - 1)]
+        }))
         this.triggerEvent(eventData.type, eventData)
     }
     initClient(id) {
@@ -157,7 +164,23 @@ class Main extends React.Component {
             this.setState({ connectStatus: "connected" })
         })
 
+        client.on('heartbeat', () => {
+            this.setState({ lastHeartbeat: new Date().getTime() })
+        })
+
+        let reconnectClientIntervalHandle = setInterval(() => {
+            if (this.state.lastHeartbeat < new Date().getTime() - 40000) this.initClient(id);
+        }, 40000)
+
         client.on("msg", (msg) => this.processMessage(msg));
+
+        let closeClient = () => {
+            this.setState({ connectStatus: "disconnected" })
+            clearInterval(reconnectClientIntervalHandle);
+        }
+
+        client.on("close", closeClient);
+        client.on("error", closeClient);
 
         return client
     }
@@ -212,7 +235,7 @@ class Main extends React.Component {
 
                 <Backdrop
                     sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                    open={this.state.connectStatus === "connecting"}
+                    open={this.state.connectStatus === "connecting" || this.state.connectStatus === "disconnecting"}
                 >
                     <CircularProgress color="inherit" />
                 </Backdrop>
@@ -241,37 +264,42 @@ class Main extends React.Component {
                     </List>
                 </Dialog>
 
-                <div className="title">
+                <div className="title" style={{ opacity: this.state.danmmakuSettings["customized.hideTitle"] ? 0 : 1 }}>
                     DanMMaku
                 </div>
                 <div className="settings">
                     <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-                        <MeetingRoom sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
-                        <TextField label="房间号" variant="standard" defaultValue={this.state.roomId} onChange={(e) => { this.setState({ roomId: e.target.value }) }} />
-                        <Button variant="contained"
-                            color={this.state.connectStatus === "connected" ? "error" : "primary"}
-                            disabled={this.state.connectStatus === "connecting" || !verifyRoomId(this.state.roomId)}
-                            onClick={() => {
+                        {
+                            (() => {
                                 if (this.state.connectStatus === "connected") {
-                                    this.state.client.close()
-                                    this.setState({
-                                        connectStatus: "disconnected",
-                                        client: null
-                                    })
-                                } else if (this.state.connectStatus === "disconnected") {
-                                    localStorage["danmmaku.bilibili.roomId"] = this.state.roomId
-                                    this.setState({
-                                        connectStatus: "connecting",
-                                        client: this.initClient(parseInt(this.state.roomId))
-                                    })
+                                    return (<div className='connected' onClick={() => {
+                                        this.state.client.close()
+                                    }}>
+                                        <div className='connectedLiveRoomID'>{this.state.roomId}</div>
+                                        <div className='splitline'></div>
+                                    </div>)
+                                } else {
+                                    return (<div><MeetingRoom sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                                        <TextField label="房间号" variant="standard" defaultValue={this.state.roomId} onChange={(e) => { this.setState({ roomId: e.target.value }) }} />
+                                        <Button variant="contained"
+                                            color={this.state.connectStatus === "connected" ? "error" : "primary"}
+                                            disabled={this.state.connectStatus === "connecting" || !verifyRoomId(this.state.roomId)}
+                                            onClick={() => {
+                                                localStorage["danmmaku.bilibili.roomId"] = this.state.roomId
+                                                this.setState({
+                                                    connectStatus: "connecting",
+                                                    client: this.initClient(parseInt(this.state.roomId))
+                                                })
+                                            }}>
+                                            {this.state.connectStatus === "connected" ? "断开连接" : ""}
+                                            {this.state.connectStatus === "disconnected" ? "连接房间" : ""}
+                                            {this.state.connectStatus === "connecting" ? "正在连接" : ""}
+                                        </Button>
+                                        <Button onClick={this.openSettings}>设置</Button></div>)
                                 }
+                            })()
+                        }
 
-                            }}>
-                            {this.state.connectStatus === "connected" ? "断开连接" : ""}
-                            {this.state.connectStatus === "disconnected" ? "连接房间" : ""}
-                            {this.state.connectStatus === "connecting" ? "正在连接" : ""}
-                        </Button>
-                        <Button onClick={this.openSettings}>设置</Button>
                     </Box>
 
                 </div>

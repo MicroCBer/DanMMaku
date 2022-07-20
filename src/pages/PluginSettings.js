@@ -81,7 +81,7 @@ class PluginSettings extends React.Component {
             }
         }
 
-        eval(`function __danmmaku_plugin_loader__(danmmaku){${content}\n}\n__danmmaku_plugin_loader__`).call(danmmakuAPI, danmmakuAPI)
+        new Function("danmmaku",content).call(danmmakuAPI, danmmakuAPI)
 
         if (thisplugin) {
             this.setState({ plugin: thisplugin, settings:JSON.parse(localStorage["danmmaku.plugin."+thisplugin.id]??"{}") })

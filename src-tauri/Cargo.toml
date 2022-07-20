@@ -1,6 +1,6 @@
 [package]
 name = "DanMMaku"
-version = "0.1.3"
+version = "0.1.4"
 description = "A bilibili live danmaku reader."
 authors = ["MicroBlock"]
 license = ""
