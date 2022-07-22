@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import Settings from './pages/Settings';
 import PluginSettings from './pages/PluginSettings';
+import DanmmakuWin from './pages/DanmmakuWin';
 
 const Buffer = require('buffer/').Buffer
 window["Buffer"] = Buffer
@@ -22,6 +23,7 @@ root.render(
         <Route path="/" element={<Main />} />
         <Route path="settings" element={<Settings/>} />
         <Route path="pluginSettings" element={<PluginSettings/>} />
+        <Route path="danmmakuWin" element={<DanmmakuWin/>}/>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

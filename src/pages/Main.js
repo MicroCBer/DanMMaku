@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Button, TextField, Alert, Snackbar, Dialog, DialogTitle, AlertTitle, InputAdornment, Box, List, ListItem, ListItemAvatar, ListItemText, Avatar, Backdrop, CircularProgress } from '@mui/material';
-import { Block, MeetingRoom } from "@mui/icons-material"
+import { Button, TextField, Alert, Snackbar, Dialog, DialogTitle, AlertTitle, ButtonGroup, InputAdornment, Box, List, ListItem, ListItemAvatar, ListItemText, Avatar, Backdrop, CircularProgress } from '@mui/material';
+import { Block, MeetingRoom, Tab, SettingsEthernet, Link } from "@mui/icons-material"
 import { invoke, window, fs, http, event, tauri } from '@tauri-apps/api';
 import { VariableSizeList } from "react-window"
 import './Main.css';
@@ -29,7 +29,8 @@ class Main extends React.Component {
             pluginListeners: {},
             dialogMessage: {},
             danmmakuSettings: {},
-            lastHeartbeat: 0
+            lastHeartbeat: 0,
+            danmmakuWindowShown: false
         };
 
         this.state.danmmakuSettings = JSON.parse(localStorage["cc.danmmaku.settings"] || "{}")
@@ -43,11 +44,15 @@ class Main extends React.Component {
 
         event.listen("addMessage", (e) => {
             let { title, text, type } = JSON.parse(e.payload);
+
+            let msg = {
+                type: "plugin_msg",
+                title, text, msg_type: type, key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
+            }
+
+            event.emit("danmmaku://message", msg)
             this.setState(prev => ({
-                messages: [{
-                    type: "plugin_msg",
-                    title, text, msg_type: type, key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
-                }, ...prev.messages.slice(0, this.state.maxMessageNumber - 1)]
+                messages: [msg, ...prev.messages.slice(0, this.state.maxMessageNumber - 1)]
             }))
         })
     }
@@ -146,17 +151,17 @@ class Main extends React.Component {
             }
         }
 
-        let eventData = parseEvent();
+        let message = parseEvent();
 
-        if (!eventData) return;
+        if (!message) return;
 
-        if (this.checkBlacklist(eventData)) return;
+        if (this.checkBlacklist(message)) return;
 
-        console.log("state", this.state, eventData)
+        event.emit("danmmaku://message", message)
         this.setState(prev => ({
-            messages: [eventData, ...prev.messages.slice(0, this.state.maxMessageNumber - 1)]
+            messages: [message, ...prev.messages.slice(0, this.state.maxMessageNumber - 1)]
         }))
-        this.triggerEvent(eventData.type, eventData)
+        this.triggerEvent(message.type, message)
     }
     initClient(id) {
         let client = new KeepLiveWS(id);
@@ -208,6 +213,25 @@ class Main extends React.Component {
         blacklist[key] ??= [];
         blacklist[key].push(value)
         localStorage["danmmaku.blacklist"] = JSON.stringify(blacklist);
+    }
+    switchDanmmakuWin() {
+        let win = window.getAll().find(v => v.label === "danmmaku_win");
+        if (win) {
+            this.setState({ danmmakuWindowShown: false })
+            win.close()
+        }
+        else {
+            this.setState({ danmmakuWindowShown: true })
+            new window.WebviewWindow("danmmaku_win", {
+                url: "/danmmakuWin",
+                alwaysOnTop: true,
+                decorations: false,
+                skipTaskbar: true,
+                transparent: false,
+                width: 200,
+                height: 300
+            })
+        }
     }
     render() {
 
@@ -273,6 +297,7 @@ class Main extends React.Component {
                             (() => {
                                 if (this.state.connectStatus === "connected") {
                                     return (<div className='connected' onClick={() => {
+                                        this.setState({ connectStatus: "disconnecting" })
                                         this.state.client.close()
                                     }}>
                                         <div className='connectedLiveRoomID'>{this.state.roomId}</div>
@@ -280,22 +305,36 @@ class Main extends React.Component {
                                     </div>)
                                 } else {
                                     return (<div><MeetingRoom sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
-                                        <TextField label="房间号" variant="standard" defaultValue={this.state.roomId} onChange={(e) => { this.setState({ roomId: e.target.value }) }} />
-                                        <Button variant="contained"
-                                            color={this.state.connectStatus === "connected" ? "error" : "primary"}
-                                            disabled={this.state.connectStatus === "connecting" || !verifyRoomId(this.state.roomId)}
-                                            onClick={() => {
-                                                localStorage["danmmaku.bilibili.roomId"] = this.state.roomId
-                                                this.setState({
-                                                    connectStatus: "connecting",
-                                                    client: this.initClient(parseInt(this.state.roomId))
-                                                })
-                                            }}>
-                                            {this.state.connectStatus === "connected" ? "断开连接" : ""}
-                                            {this.state.connectStatus === "disconnected" ? "连接房间" : ""}
-                                            {this.state.connectStatus === "connecting" ? "正在连接" : ""}
-                                        </Button>
-                                        <Button onClick={this.openSettings}>设置</Button></div>)
+                                        <TextField label="房间号"
+
+                                            variant="standard"
+                                            size='small'
+                                            defaultValue={this.state.roomId}
+                                            onChange={(e) => { this.setState({ roomId: e.target.value }) }} />
+
+                                        <ButtonGroup variant="outlined" aria-label="outlined button group">
+                                            <Button variant="contained"
+                                                color={this.state.connectStatus === "connected" ? "error" : "primary"}
+                                                disabled={this.state.connectStatus === "connecting" || !verifyRoomId(this.state.roomId)}
+                                                onClick={() => {
+                                                    localStorage["danmmaku.bilibili.roomId"] = this.state.roomId
+                                                    this.setState({
+                                                        connectStatus: "connecting",
+                                                        client: this.initClient(parseInt(this.state.roomId))
+                                                    })
+                                                }}>
+                                                {/* {this.state.connectStatus === "connected" ? "断开" : ""}
+                                            {this.state.connectStatus === "disconnected" ? "连接" : ""}
+                                            {this.state.connectStatus === "connecting" ? "连接中" : ""} */}
+                                                <Link />
+                                            </Button>
+                                            <Button
+                                                variant={this.state.danmmakuWindowShown ? "contained" : "outlined"}
+                                                onClick={() => { this.switchDanmmakuWin() }}
+                                            ><Tab /></Button>
+                                            <Button onClick={this.openSettings}><SettingsEthernet /></Button>
+                                        </ButtonGroup>
+                                    </div>)
                                 }
                             })()
                         }
