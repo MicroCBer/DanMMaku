@@ -48,11 +48,6 @@ fn open(sth: String) {
 fn main() {
     let context = tauri::generate_context!();
     tauri::Builder::default()
-        .menu(if cfg!(target_os = "macos") {
-            tauri::Menu::os_default(&context.package_info().name)
-        } else {
-            tauri::Menu::default()
-        })
         .invoke_handler(tauri::generate_handler![get_config_dir, open, unzip, download])
         .run(context)
         .expect("error while running tauri application");

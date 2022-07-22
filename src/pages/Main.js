@@ -39,6 +39,8 @@ class Main extends React.Component {
 
         invoke("get_config_dir").then((configDir) => {
             this.state.configDir = configDir
+
+            if(this.state.danmmakuSettings["customized.background"].length)
             document.body.style.background = "url(" + tauri.convertFileSrc(configDir + "/" + this.state.danmmakuSettings["customized.background"]) + ")"
         })
 

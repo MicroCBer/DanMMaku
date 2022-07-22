@@ -9,16 +9,16 @@
   },
   "package": {
     "productName": "danmmaku",
-    "version": "0.1.5"
+    "version": "0.1.6"
   },
   "tauri": {
     "allowlist": {
       "all": true,
       "protocol": {
-        "all": false,
+        "all": true,
         "asset": true,
         "assetScope": [
-          "**/DanMMaku/config/**"
+          "**/DanMMaku/**"
         ]
       },
       "http": {
@@ -78,7 +78,7 @@
       }
     },
     "security": {
-      "csp": ""
+      "csp": null
     },
     "updater": {
       "active": false
