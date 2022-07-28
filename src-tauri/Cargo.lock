@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "DanMMaku"
-version = "0.1.4"
+version = "0.1.7"
 dependencies = [
  "directories",
  "download_rs_reborned",
