@@ -7,12 +7,18 @@ import './Main.css';
 import "./Universal.css"
 import Plugin from "../lib/PluginManager"
 
+
 const { KeepLiveWS } = require("bilibili-live-ws/browser");
 
 function verifyRoomId(id) {
     return !Number.isNaN(parseInt(id)) && parseInt(id) + '' === id
 }
 
+function wait(ms) {
+    return new Promise((rs) => {
+        setTimeout(rs, ms)
+    })
+}
 
 class Main extends React.Component {
     constructor(props) {
@@ -30,7 +36,8 @@ class Main extends React.Component {
             dialogMessage: {},
             danmmakuSettings: {},
             lastHeartbeat: 0,
-            danmmakuWindowShown: false
+            danmmakuWindowShown: false,
+            pendingGiftProcess:{}
         };
 
         this.state.danmmakuSettings = JSON.parse(localStorage["cc.danmmaku.settings"] || "{}")
@@ -40,8 +47,8 @@ class Main extends React.Component {
         invoke("get_config_dir").then((configDir) => {
             this.state.configDir = configDir
 
-            if(this.state.danmmakuSettings["customized.background"].length)
-            document.body.style.background = "url(" + tauri.convertFileSrc(configDir + "/" + this.state.danmmakuSettings["customized.background"]) + ")"
+            if (this.state.danmmakuSettings["customized.background"].length)
+                document.body.style.background = "url(" + tauri.convertFileSrc(configDir + "/" + this.state.danmmakuSettings["customized.background"]) + ")"
         })
 
         event.listen("addMessage", (e) => {
@@ -102,9 +109,10 @@ class Main extends React.Component {
         }
     }
     async processMessage(msg) {
+        console.log(msg)
         let { cmd, info, data } = msg;
 
-        function parseEvent() {
+        let parseEvent=async ()=>{
             switch (cmd) {
                 case "SUPER_CHAT_MESSAGE_JPN": {
                     return {
@@ -130,30 +138,59 @@ class Main extends React.Component {
                     }
                 }
                 case "INTERACT_WORD": {
-                    if (!data.msg_type === 1) break;
-                    return {
-                        type: "entry_room",
-                        username: data.uname,
-                        userid: data.uid,
-                        key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
+                    switch(data.msg_type){
+                        case 1:{
+                            return {
+                                type: "entry_room",
+                                username: data.uname,
+                                userid: data.uid,
+                                key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
+                            }
+                        }
+                        case 2:{
+                            return {
+                                type: "follow",
+                                username: data.uname,
+                                userid: data.uid,
+                                key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
+                            }
+                        }
                     }
+
+                    break;
                 }
                 case "SEND_GIFT": {
-                    return {
+                    this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType]||={
+                        num:0,price:0
+                    };
+                    this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType].num+=data.num;
+                    this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType].price+=data.price;
+                    
+                    let lastGift=this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType].num;
+                    await wait(800);
+
+                    if(this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType].num!==lastGift){
+                        return void 0;
+                    }
+
+                    let obj= {
                         type: "receive_gift",
                         username: data.uname,
                         userid: data.uid,
                         giftname: data.giftName,
                         gifttype: data.giftType,
-                        price: data.price,
-                        number: data.num,
+                        price: this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType].price,
+                        number: this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType].num,
                         key: new Date().getTime() + '' + Math.floor(Math.random() * 100000),
                     }
+
+                    delete this.state.pendingGiftProcess[data.uid+"__"+data.giftName+"__"+data.giftType];
+                    return obj;
                 }
             }
         }
 
-        let message = parseEvent();
+        let message = await parseEvent();
 
         if (!message) return;
 

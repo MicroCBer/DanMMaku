@@ -122,8 +122,10 @@ class PluginSettings extends React.Component {
                     }
                     return (
                         <div className={`settings select subtitle-${path.length}`}>
+                            <span>
+                                {settings.text}
+                            </span>
                             <Select
-
                                 size="small"
                                 fullWidth
                                 variant="standard"

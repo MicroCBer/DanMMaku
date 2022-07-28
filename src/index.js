@@ -11,9 +11,13 @@ import {
 import Settings from './pages/Settings';
 import PluginSettings from './pages/PluginSettings';
 import DanmmakuWin from './pages/DanmmakuWin';
+import Injector from './pages/Injector';
+import { WsRemote } from './lib/WsUtils';
 
 const Buffer = require('buffer/').Buffer
 window["Buffer"] = Buffer
+window.WsRemote=WsRemote;
+window.remote=new WsRemote(document.location.pathname)
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -24,6 +28,7 @@ root.render(
         <Route path="settings" element={<Settings/>} />
         <Route path="pluginSettings" element={<PluginSettings/>} />
         <Route path="danmmakuWin" element={<DanmmakuWin/>}/>
+        <Route path="inject" element={<Injector/>}/>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

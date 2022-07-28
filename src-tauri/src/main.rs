@@ -4,9 +4,11 @@
 )]
 
 extern crate directories;
-use std::fs;
-
+use std::{fs, thread};
+mod websocket_forwarder;
+use crate::websocket_forwarder::WsForwardServer;
 use directories::{BaseDirs, ProjectDirs, UserDirs};
+use tauri::{AppHandle, window, Window};
 use unzpack::Unzpack;
 
 #[tauri::command]
@@ -45,10 +47,31 @@ fn open(sth: String) {
     open::that(sth);
 }
 
+#[tauri::command]
+async fn create_window_with_script(handle:AppHandle,tag:String,urll:String,code_to_inject: String) {
+    // window.eval(&code_to_inject);
+    tauri::WindowBuilder::new(&handle,tag, tauri::WindowUrl::External(url::Url::parse(urll.as_str()).unwrap()))
+                            .initialization_script(&format!("{}",code_to_inject))
+                            .build()
+                            .unwrap();
+}
+
+
 fn main() {
     let context = tauri::generate_context!();
+    
+    thread::spawn(||{
+        WsForwardServer::listen(6812);
+    });
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_config_dir, open, unzip, download])
+        .invoke_handler(tauri::generate_handler![
+            get_config_dir,
+            open,
+            unzip,
+            download,
+            create_window_with_script
+        ])
         .run(context)
         .expect("error while running tauri application");
 }
