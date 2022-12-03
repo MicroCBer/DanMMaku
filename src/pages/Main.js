@@ -111,6 +111,7 @@ class Main extends React.Component {
     async processMessage(msg) {
         console.log(msg)
         let { cmd, info, data } = msg;
+        cmd=cmd.split(":")[0]
 
         let parseEvent=async ()=>{
             switch (cmd) {
