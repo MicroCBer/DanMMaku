@@ -2,13 +2,14 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+#![feature(fs_try_exists)]
 
 extern crate directories;
-use std::{fs, thread};
+use std::{env::join_paths, fs, path, thread};
 mod websocket_forwarder;
 use crate::websocket_forwarder::WsForwardServer;
 use directories::{BaseDirs, ProjectDirs, UserDirs};
-use tauri::{AppHandle, window, Window};
+use tauri::{window, AppHandle, Window};
 use unzpack::Unzpack;
 
 #[tauri::command]
@@ -39,6 +40,7 @@ fn get_config_dir() -> Option<String> {
             .to_str()?
     );
     fs::create_dir_all(&addr);
+
     Some(addr)
 }
 
@@ -48,19 +50,36 @@ fn open(sth: String) {
 }
 
 #[tauri::command]
-async fn create_window_with_script(handle:AppHandle,tag:String,urll:String,code_to_inject: String) {
+async fn create_window_with_script(
+    handle: AppHandle,
+    tag: String,
+    urll: String,
+    code_to_inject: String,
+) {
     // window.eval(&code_to_inject);
-    tauri::WindowBuilder::new(&handle,tag, tauri::WindowUrl::External(url::Url::parse(urll.as_str()).unwrap()))
-                            .initialization_script(&format!("{}",code_to_inject))
-                            .build()
-                            .unwrap();
+    tauri::WindowBuilder::new(
+        &handle,
+        tag,
+        tauri::WindowUrl::External(url::Url::parse(urll.as_str()).unwrap()),
+    )
+    .initialization_script(&format!("{}", code_to_inject))
+    .build()
+    .unwrap();
 }
-
 
 fn main() {
     let context = tauri::generate_context!();
-    
-    thread::spawn(||{
+
+    thread::spawn(|| {
+        fs::create_dir_all(path::Path::new(get_config_dir().unwrap().as_str()).join("plugins"));
+        fs::write(
+            get_config_dir().unwrap() + "plugins/tts.js",
+            include_str!("./tts.js"),
+        )
+        .unwrap();
+    });
+
+    thread::spawn(|| {
         WsForwardServer::listen(6812);
     });
 

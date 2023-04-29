@@ -63,7 +63,7 @@ class Settings extends Component {
             })
         plSettings.once("tauri://created", async () => {
             setTimeout(async () => {
-                await plSettings.emit("danmmaku://openPlugin", plugin);
+                await plSettings.emit("danmmaku://openPlugin", JSON.stringify(plugin));
             }, 400)
         })
         plSettings.once("tauri://close-requested", () => {
